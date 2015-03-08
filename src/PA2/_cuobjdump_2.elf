@@ -1,0 +1,119 @@
+
+
+.section .strtab	STRTAB
+
+.section .shstrtab	STRTAB
+
+.section .symtab	SYMTAB
+ index     value     size      info    other  shndx    name  
+   0          0        0        0        0      0     (null)
+   1          0        0        3        0      1     .shstrtab
+   2          0        0        3        0      2     .strtab
+   3          0        0        3        0      3     .symtab
+   4          0        0        3        0      0     
+   5          0        0        3        0      0     
+   6          0      352        3        0      4     .text._Z10testKernelPfS_S_jjjj
+   7          0        0        3        0      6     .nv.info._Z10testKernelPfS_S_jjjj
+   8          0        0        3        0      7     .nv.info
+   9          0        0        3        0      5     .nv.constant0._Z10testKernelPfS_S_jjjj
+  10          0      352       12       10      4     _Z10testKernelPfS_S_jjjj
+
+
+.nv.constant0._Z10testKernelPfS_S_jjjj	PROGBITS
+0x00000000  0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  0x00000000  0x00000000  
+0x00000000  0x00000000  
+
+
+.text._Z10testKernelPfS_S_jjjj	PROGBITS
+bar = 0	reg = 12	lmem=0	smem=0
+0x00005de4  0x28004404  0x88011c04  0x2c000000  
+0x98009c04  0x2c000000  0x8400dc04  0x2c000000  
+0x94001c04  0x2c000000  0xd3f1dc03  0x190e4000  
+0x10209c83  0x40000000  0x0c001c83  0x40000000  
+0xc00001e7  0x40000003  0xe3f1dc03  0x188e4000  
+0xfc00dde4  0x28000000  0xfc011de4  0x28000000  
+0xc00021e7  0x40000002  0x0c219d03  0x48000000  
+0xfc015de4  0x28000000  0xe032dc03  0x50004000  
+0xfc63dc23  0x1a0effff  0xe0000007  0x60000001  
+0xa00025e7  0x40000001  0xb065dc03  0x1b0e4000  
+0x600009e7  0x40000001  0x1401dd03  0x48000000  
+0xfc75dc23  0x198effff  0x000009e7  0x40000001  
+0xc075dc03  0x1b0e4000  0xc00089e7  0x40000000  
+0xc0622803  0x200e4000  0x2c51e803  0x48000000  
+0x8082a843  0x40004000  0x90726843  0x40004000  
+0x24a22805  0xb3000007  0x1c812800  0x30080000  
+0x04515c13  0x4800c000  0xe055dc03  0x1a8e4000  
+0xc00009e7  0x4003fffd  0x0430dc03  0x4800c000  
+0xd033dc03  0x1a8e4000  0xc00005e7  0x4003fffc  
+0x20001de7  0x40000000  0xfc011de4  0x28000000  
+0xc0201c03  0x20004000  0xa0001c43  0x40004000  
+0x00011c85  0x90000000  0x00001de7  0x80000000  
+
+
+
+.nv.info._Z10testKernelPfS_S_jjjj	PROGBITS
+	<0x1>
+	Attribute:	EIATTR_CBANK_PARAM_OFFSETS
+	Format:	EIFMT_SVAL
+	Value:	0x0 0x4 0x8 0xc 0x10 0x14 0x18 
+	<0x2>
+	Attribute:	EIATTR_PARAM_CBANK
+	Format:	EIFMT_SVAL
+	Value:	0x9 0x1c0020 
+	<0x3>
+	Attribute:	EIATTR_CBANK_PARAM_SIZE
+	Format:	EIFMT_HVAL
+	Value:	0x1c
+	<0x4>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x6	Offset  : 0x18	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x5>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x5	Offset  : 0x14	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x6>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x4	Offset  : 0x10	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x7>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x3	Offset  : 0xc	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x8>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x2	Offset  : 0x8	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0x9>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x1	Offset  : 0x4	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0xa>
+	Attribute:	EIATTR_KPARAM_INFO
+	Format:	EIFMT_SVAL
+	Value:	Index : 0xffffffff	Ordinal : 0x0	Offset  : 0x0	Size    : 0x4
+		Pointee's logAlignment : 0x0	Space : 0x0	cbank : 0x1f	Parameter Space : CBANK	
+	<0xb>
+	Attribute:	EIATTR_SYNC_STACK
+	Format:	EIFMT_SVAL
+	Value:	0x5003c 0x4 
+
+
+.nv.info	PROGBITS
+	<0x1>
+	Attribute:	EIATTR_MIN_STACK_SIZE
+	Format:	EIFMT_SVAL
+	Value:	function: _Z10testKernelPfS_S_jjjj(0xa)	min stack size: 0x0
+	<0x2>
+	Attribute:	EIATTR_FRAME_SIZE
+	Format:	EIFMT_SVAL
+	Value:	function: _Z10testKernelPfS_S_jjjj(0xa)	frame size: 0x0
+
