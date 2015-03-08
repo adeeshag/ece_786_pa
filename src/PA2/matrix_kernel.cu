@@ -61,8 +61,10 @@ testKernel(	float* d_matrixA,
 			const unsigned int bh,
 			const unsigned int bw) {
   // shared memory
+#if 0
     unsigned int matrixBSize = bh*bw; //Matrix B size
-	__shared__ float shm_matrixB[];
+	__shared__ float shm_matrixB[matrixBSize];
+#endif
   // the size is determined by the host application
 // extern  __shared__  float sdata[];
 	const unsigned int bx = blockIdx.x;
