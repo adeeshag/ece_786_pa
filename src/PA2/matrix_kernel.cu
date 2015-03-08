@@ -119,8 +119,8 @@ testKernel(	float* d_matrixA,
 				sum += a*b;
 			}
 		}
+		__syncthreads();
 	}
-	__syncthreads();
 #elif defined(CHANGE1_TEST)
 //modified code
 	for (int j=0; j<bh; j++) {
