@@ -40,6 +40,7 @@
 
 #ifndef _matrix_KERNEL_H_
 #define _matrix_KERNEL_H_
+#define CHANGE1_TEST 1
 
 #include <stdio.h>
 
@@ -61,9 +62,10 @@ testKernel(	float* d_matrixA,
 			const unsigned int bh,
 			const unsigned int bw) {
   // shared memory
-#if 0
-    unsigned int matrixBSize = bh*bw; //Matrix B size
-	__shared__ float shm_matrixB[matrixBSize];
+#ifdef CHANGE1_TEST
+
+    unsigned int shm_matrixBSize = sizeof(float) * bh * bw ; //Matrix B size
+    extern __shared__ float shm_matrixB[];
 #endif
   // the size is determined by the host application
 // extern  __shared__  float sdata[];
@@ -82,7 +84,20 @@ testKernel(	float* d_matrixA,
 	float sum = 0;
 	int y = ystep+ty;
 	int x = xstep+tx;
+#ifdef CHANGE1_TEST
+	for (int j=0; j<bh; j++) {
+		for(int k = 0; k < bw; ++k) {
+			shm_matrixB[j*bw+k] = d_matrixB[j*bw+k];
+		}
+	}
+
+	__syncthreads();
 	
+
+#endif
+
+#ifndef CHANGE1_TEST	
+//Original Code
 	for (int j=0; j<bh; j++) {
 		for(int k = 0; k < bw; ++k) {
 			float b = d_matrixB[j*bw+k];
@@ -94,7 +109,21 @@ testKernel(	float* d_matrixA,
 			}
 		}
 	}
-
+#else
+//modified code
+	for (int j=0; j<bh; j++) {
+		for(int k = 0; k < bw; ++k) {
+			float b = shm_matrixB[j*bw+k];
+			float a = 0;
+			// check the out-of-bound
+			if ((y-j)>-1&&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
+				a = d_matrixA[(y-j)*aw+(x-k)];
+				sum += a*b;
+			}
+		}
+	}
+	__syncthreads();
+#endif
 	// write data to global memory
 	d_matrixC[y*aw+x] = sum;
 }
