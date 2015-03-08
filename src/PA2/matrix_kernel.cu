@@ -40,7 +40,8 @@
 
 #ifndef _matrix_KERNEL_H_
 #define _matrix_KERNEL_H_
-#define CHANGE1_TEST 1
+//#define CHANGE1_TEST 1
+#define CHANGE2 1
 
 #include <stdio.h>
 
@@ -95,20 +96,32 @@ testKernel(	float* d_matrixA,
 	__syncthreads();
 #endif
 
-#ifndef CHANGE1_TEST	
-//Original Code
+
+#ifdef CHANGE2	
+//modified code
 	for (int j=0; j<bh; j++) {
+		if((threadIdx.x % BLOCK_SIZE==0));
+		{
+        	    for(int a=0; a<BLOCK_SIZE-1;++a)
+            	{
+			 shm_subMatrixA[a] = d_matrixA[(y*aw)+x+a];
+		    }
+			
+		}
+
+		__syncthreads();
 		for(int k = 0; k < bw; ++k) {
 			float b = d_matrixB[j*bw+k];
 			float a = 0;
 			// check the out-of-bound
-			if ((y-j)>-1&&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
-				a = d_matrixA[(y-j)*aw+(x-k)];
+			if ((y-j)>-1&&(y-j)<ah&&((x%BLOCK_SIZE)-k)>-1&&((x%BLOCK_SIZE)-k)<BLOCK_SIZE) {
+				a = shm_subMatrixA[((x%BLOCK_SIZE)-k)];
 				sum += a*b;
 			}
 		}
 	}
-#else
+	__syncthreads();
+#elif defined(CHANGE1_TEST)
 //modified code
 	for (int j=0; j<bh; j++) {
 		for(int k = 0; k < bw; ++k) {
@@ -122,6 +135,19 @@ testKernel(	float* d_matrixA,
 		}
 	}
 	__syncthreads();
+#else
+//Original Code
+	for (int j=0; j<bh; j++) {
+		for(int k = 0; k < bw; ++k) {
+			float b = d_matrixB[j*bw+k];
+			float a = 0;
+			// check the out-of-bound
+			if ((y-j)>-1&&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
+				a = d_matrixA[(y-j)*aw+(x-k)];
+				sum += a*b;
+			}
+		}
+	}
 #endif
 	// write data to global memory
 	d_matrixC[y*aw+x] = sum;
