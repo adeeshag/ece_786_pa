@@ -67,6 +67,10 @@ testKernel(	float* d_matrixA,
     unsigned int shm_matrixBSize = sizeof(float) * bh * bw ; //Matrix B size
     extern __shared__ float shm_matrixB[];
 #endif
+#ifdef CHANGE2
+    __shared__ float shm_subMatrixA[BLOCK_SIZE];
+
+#endif
   // the size is determined by the host application
 // extern  __shared__  float sdata[];
 	const unsigned int bx = blockIdx.x;
@@ -85,15 +89,10 @@ testKernel(	float* d_matrixA,
 	int y = ystep+ty;
 	int x = xstep+tx;
 #ifdef CHANGE1_TEST
-	for (int j=0; j<bh; j++) {
-		for(int k = 0; k < bw; ++k) {
-			shm_matrixB[j*bw+k] = d_matrixB[j*bw+k];
-		}
-	}
+	if((threadIdx.x % BLOCK_SIZE==0)&&(threadIdx.y % BLOCK_SIZE==0))
+		memcpy(shm_matrixB, d_matrixB, shm_matrixBSize);	
 
 	__syncthreads();
-	
-
 #endif
 
 #ifndef CHANGE1_TEST	
