@@ -40,8 +40,12 @@
 
 #ifndef _matrix_KERNEL_H_
 #define _matrix_KERNEL_H_
-//#define CHANGE1_TEST 1
-#define CHANGE2 1
+
+#define KERNEL_SIZE 64
+#define KERNEL_LENGTH 8
+
+#define CHANGE1 1
+//#define CHANGE2 1
 
 #include <stdio.h>
 
@@ -63,10 +67,10 @@ testKernel(	float* d_matrixA,
 			const unsigned int bh,
 			const unsigned int bw) {
   // shared memory
-#ifdef CHANGE1_TEST
+#ifdef CHANGE1
 
     unsigned int shm_matrixBSize = sizeof(float) * bh * bw ; //Matrix B size
-    extern __shared__ float shm_matrixB[];
+    __shared__ float shm_matrixB[KERNEL_SIZE];
 #endif
 #ifdef CHANGE2
     __shared__ float shm_subMatrixA[BLOCK_SIZE];
@@ -89,9 +93,10 @@ testKernel(	float* d_matrixA,
 	float sum = 0;
 	int y = ystep+ty;
 	int x = xstep+tx;
-#ifdef CHANGE1_TEST
-	if((threadIdx.x % BLOCK_SIZE==0)&&(threadIdx.y % BLOCK_SIZE==0))
-		memcpy(shm_matrixB, d_matrixB, shm_matrixBSize);	
+#ifdef CHANGE1
+
+	if((tx<8)&&(ty<8))
+	    shm_matrixB[KERNEL_LENGTH * ty + tx] = d_matrixB[ ty * KERNEL_LENGTH + tx];
 
 	__syncthreads();
 #endif
@@ -100,28 +105,24 @@ testKernel(	float* d_matrixA,
 #ifdef CHANGE2	
 //modified code
 	for (int j=0; j<bh; j++) {
-		if((threadIdx.x % BLOCK_SIZE==0));
-		{
-        	    for(int a=0; a<BLOCK_SIZE-1;++a)
-            	{
-			 shm_subMatrixA[a] = d_matrixA[(y*aw)+x+a];
-		    }
-			
-		}
+
+		   shm_subMatrixA[tx] = d_matrixA[(ty-j)*aw+(tx-32)];
+		   shm_subMatrixA[tx+32] = d_matrixA[(ty-j)*aw+tx];
 
 		__syncthreads();
 		for(int k = 0; k < bw; ++k) {
 			float b = d_matrixB[j*bw+k];
 			float a = 0;
 			// check the out-of-bound
-			if ((y-j)>-1&&(y-j)<ah&&((x%BLOCK_SIZE)-k)>-1&&((x%BLOCK_SIZE)-k)<BLOCK_SIZE) {
-				a = shm_subMatrixA[((x%BLOCK_SIZE)-k)];
+			if ((y-j)>-1 &&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
+				    a = shm_subMatrixA[x+(BLOCK_SIZE/2)-k];
+
 				sum += a*b;
 			}
 		}
 		__syncthreads();
 	}
-#elif defined(CHANGE1_TEST)
+#elif defined(CHANGE1)
 //modified code
 	for (int j=0; j<bh; j++) {
 		for(int k = 0; k < bw; ++k) {
