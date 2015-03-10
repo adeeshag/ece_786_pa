@@ -89,7 +89,7 @@ void printDiff(float *data1, float *data2, int width, int height)
     for (i=0; i<width; i++) {
       k = j*width+i;
       if (data1[k] != data2[k]) {
-         printf("diff(%d,%d) CPU=%4.4f, GPU=%4.4f n", i,j, data1[k], data2[k    ]);
+         printf("diff(%d,%d) CPU=%4.4f, GPU=%4.4f \n", i,j, data1[k], data2[k]);
          error_count++;
       }
     }
@@ -135,9 +135,14 @@ runTest( int argc, char** argv)
 
 	printf( "initalize A\n");
     // initalize the memory
+#if 1
     for( unsigned int i = 0; i < matrixASize; ++i) matrixA[i] = (float) i;
     for( unsigned int i = 0; i < matrixBSize; ++i) matrixB[i] = (float) (i+1);
-
+#else
+    for( unsigned int i = 0; i < matrixASize; ++i) matrixA[i] = (float) 1;
+    for( unsigned int i = 0; i < matrixBSize; ++i) matrixB[i] = (float) 1;
+	
+#endif
 	// print matrix 
 	printf( "matrix A\n");
 //	printMatrix(matrixA, MATRIX_A_WIDTH, matrixASize);
@@ -166,10 +171,15 @@ runTest( int argc, char** argv)
 //                                cudaMemcpyHostToDevice) );
 
     // allocate device memory for result
-
+#if 0
     // setup execution parameters
     dim3  threads( BLOCK_SIZE, BLOCK_SIZE);
     dim3  grid( MATRIX_A_WIDTH/BLOCK_SIZE, MATRIX_A_HEIGHT/BLOCK_SIZE);
+#else
+    // setup execution parameters
+    dim3  threads( BLOCK_SIZE_WIDTH, BLOCK_SIZE_HEIGHT);
+    dim3  grid( MATRIX_A_WIDTH/BLOCK_SIZE_WIDTH, MATRIX_A_HEIGHT/BLOCK_SIZE_HEIGHT);
+#endif
 
     // execute the kernel
     testKernel<<< grid, threads >>>( d_matrixA, d_matrixB, d_matrixC, MATRIX_A_HEIGHT, MATRIX_A_WIDTH, MATRIX_B_HEIGHT, MATRIX_B_WIDTH);
@@ -182,16 +192,13 @@ runTest( int argc, char** argv)
                                 cudaMemcpyDeviceToHost) );
 
     timestamp("done kernel", 0);
-
-	printf( "matrixC\n");
+//	printf( "matrixC\n");
 //	printMatrix(matrixC, MATRIX_A_WIDTH, matrixCSize);
-
 
     // compute reference solution
     float* reference = (float*) malloc( matrixMemCSize);
 	computeGold(matrixA, matrixB, reference, MATRIX_A_HEIGHT, MATRIX_A_WIDTH, MATRIX_B_HEIGHT, MATRIX_B_WIDTH);
-
-	printf( "reference\n");
+//	printf( "reference\n");
 //	printMatrix(reference, MATRIX_A_WIDTH, matrixCSize);
 
     // check result
@@ -207,7 +214,7 @@ runTest( int argc, char** argv)
         // in this case check if the result is equivalent to the expected soluion
         int res = compMatrix( reference, matrixC, matrixCSize);
         printf( "Test %s\n", (1 == res) ? "PASSED" : "FAILED");
-//        if (res!=1) printDiff(reference, matrixC, MATRIX_A_WIDTH, MATRIX_A_HEIGHT);
+        if (res!=1) printDiff(reference, matrixC, MATRIX_A_WIDTH, MATRIX_A_HEIGHT);
     }
 
     // cleanup memory

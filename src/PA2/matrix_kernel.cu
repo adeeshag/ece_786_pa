@@ -43,9 +43,12 @@
 
 #define KERNEL_SIZE 64
 #define KERNEL_LENGTH 8
+#define WARP_SIZE 32
+#define FACTOR	1 
+#define DATA_TO_PULL_SIZE (FACTOR * WARP_SIZE)
 
-#define CHANGE1 1
-//#define CHANGE2 1
+//#define CHANGE1 1
+#define CHANGE2 1
 
 #include <stdio.h>
 
@@ -73,7 +76,7 @@ testKernel(	float* d_matrixA,
     __shared__ float shm_matrixB[KERNEL_SIZE];
 #endif
 #ifdef CHANGE2
-    __shared__ float shm_subMatrixA[BLOCK_SIZE];
+    __shared__ float shm_subMatrixA[BLOCK_SIZE_WIDTH];
 
 #endif
   // the size is determined by the host application
@@ -86,13 +89,19 @@ testKernel(	float* d_matrixA,
 	const int tx = threadIdx.x;
 	const int ty = threadIdx.y;
 
-	int xstep = BLOCK_SIZE*bx;
-	int ystep = BLOCK_SIZE*by;
+#if 1
+	int xstep = bx;
+	int ystep = BLOCK_SIZE_HEIGHT*by;
 
+#endif
 
 	float sum = 0;
+#if 1
 	int y = ystep+ty;
-	int x = xstep+tx;
+	int x = xstep+ tx;
+#endif
+
+
 #ifdef CHANGE1
 
 	if((tx<8)&&(ty<8))
@@ -106,22 +115,31 @@ testKernel(	float* d_matrixA,
 //modified code
 	for (int j=0; j<bh; j++) {
 
-		   shm_subMatrixA[tx] = d_matrixA[(ty-j)*aw+(tx-32)];
-		   shm_subMatrixA[tx+32] = d_matrixA[(ty-j)*aw+tx];
+#if 0
+			if(tx<WARP_SIZE)
+		           if (((y-j)>-1) &&((y-j)<ah)&&((x-DATA_TO_PULL_SIZE)>-1)&&((x - DATA_TO_PULL_SIZE)<aw)) 
+		   	      shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x-DATA_TO_PULL_SIZE)];
+#endif
+#if 1	
 
+		        if ((((y-j)>-1) &&(y-j)<ah))
+		   	   shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
+#endif
+		   
 		__syncthreads();
+
 		for(int k = 0; k < bw; ++k) {
 			float b = d_matrixB[j*bw+k];
 			float a = 0;
 			// check the out-of-bound
-			if ((y-j)>-1 &&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
-				    a = shm_subMatrixA[x+(BLOCK_SIZE/2)-k];
+			if ((y-j)>-1 &&(y-j)<ah&&((x)-k)>-1&&((x)-k)<aw) {
+				    a = shm_subMatrixA[tx-k];
 
 				sum += a*b;
 			}
-		}
+		}//k loop
 		__syncthreads();
-	}
+	}//j loop
 #elif defined(CHANGE1)
 //modified code
 	for (int j=0; j<bh; j++) {
@@ -134,7 +152,7 @@ testKernel(	float* d_matrixA,
 				sum += a*b;
 			}
 		}
-	}
+	} //j loop
 	__syncthreads();
 #else
 //Original Code
@@ -148,10 +166,10 @@ testKernel(	float* d_matrixA,
 				sum += a*b;
 			}
 		}
-	}
+	}//j loop
 #endif
 	// write data to global memory
 	d_matrixC[y*aw+x] = sum;
-}
+}// end of func
 
 #endif // #ifndef _matrix_KERNEL_H_
