@@ -134,7 +134,6 @@ testKernel(	float* d_matrixA,
 	   	 {
 		     shm_subMatrixA0[tx] = d_matrixA[(y-j)*aw+(x)];
                  }
-		__syncthreads();
 	        if ((((y+1-j)>-1) &&(y+1-j)<ah))
 	   	 {
 		     shm_subMatrixA1[tx] = d_matrixA[(y+1-j)*aw+(x)];
