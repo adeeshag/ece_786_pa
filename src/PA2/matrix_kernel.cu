@@ -42,9 +42,9 @@
 #define _matrix_KERNEL_H_
 
 
-//#define CHANGE1 1
-#define CHANGE2 1
-#define CHANGE3 1
+#define CHANGE1 1 // Matrix B in shared memory
+#define CHANGE2 1 //Matrix A in shared memory with Block merge
+#define CHANGE3 1 // Matrix A in shared memory with Thread Merge
 
 #include <stdio.h>
 
@@ -65,11 +65,13 @@ testKernel(	float* d_matrixA,
 			const unsigned int aw,
 			const unsigned int bh,
 			const unsigned int bw) {
-  // shared memory
+  // shared memory - Matrix B
 #ifdef CHANGE1
 
     __shared__ float shm_matrixB[KERNEL_SIZE];
 #endif
+
+  // shared memory - SubMatrix A
 #ifdef CHANGE3
     __shared__ float shm_subMatrixA0[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
     __shared__ float shm_subMatrixA1[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
@@ -78,6 +80,7 @@ testKernel(	float* d_matrixA,
     __shared__ float shm_subMatrixA[2*BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
 
 #endif
+
   // the size is determined by the host application
 // extern  __shared__  float sdata[];
 	const unsigned int bx = blockIdx.x;
@@ -88,11 +91,17 @@ testKernel(	float* d_matrixA,
 	const int tx = threadIdx.x;
 	const int ty = threadIdx.y;
 
-#if 1
+#ifdef CHANGE3
 	int xstep = bx;
 	int ystep = 2 * by;
-
+#elif defined(CHANGE2)
+	int xstep = bx;
+	int ystep = by;
+#else
+	int xstep = BLOCK_SIZE * bx;
+	int ystep = BLOCK_SIZE * by;
 #endif
+
 #ifdef CHANGE3
 	float sum0 = 0;
 	float sum1 = 0;
@@ -134,7 +143,7 @@ testKernel(	float* d_matrixA,
 		__syncthreads();
 
 		for(int k = 0; k < bw; ++k) {
-			float b = d_matrixB[j*bw+k];
+			float b = shm_matrixB[j*bw+k];
 			float a0 = 0;
 			float a1 = 0;
 			// check the out-of-bound
