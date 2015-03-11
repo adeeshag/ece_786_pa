@@ -42,7 +42,7 @@
 #define _matrix_KERNEL_H_
 
 
-#define CHANGE1 1
+//#define CHANGE1 1
 #define CHANGE2 1
 #define CHANGE3 1
 
@@ -70,8 +70,12 @@ testKernel(	float* d_matrixA,
 
     __shared__ float shm_matrixB[KERNEL_SIZE];
 #endif
-#ifdef CHANGE2
-    __shared__ float shm_subMatrixA[BLOCK_SIZE_WIDTH];
+#ifdef CHANGE3
+    __shared__ float shm_subMatrixA0[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
+    __shared__ float shm_subMatrixA1[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
+
+#elif defined(CHANGE2)
+    __shared__ float shm_subMatrixA[2*BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
 
 #endif
   // the size is determined by the host application
@@ -86,7 +90,7 @@ testKernel(	float* d_matrixA,
 
 #if 1
 	int xstep = bx;
-	int ystep = BLOCK_SIZE_HEIGHT*by;
+	int ystep = 2 * by;
 
 #endif
 #ifdef CHANGE3
@@ -103,10 +107,11 @@ testKernel(	float* d_matrixA,
 
 #ifdef CHANGE1
 
-	if((tx<(KERNEL_SIZE/2)))
-	    shm_matrixB[KERNEL_LENGTH*ty + tx] = d_matrixB[KERNEL_LENGTH *ty + tx];
-
+	if((tx<(KERNEL_SIZE)))
+	    shm_matrixB[ tx ] = d_matrixB[ tx ];
 	__syncthreads();
+
+
 #endif
 
 
@@ -117,20 +122,33 @@ testKernel(	float* d_matrixA,
 	for (int j=0; j<bh; j++) {
 
 	        if ((((y-j)>-1) &&(y-j)<ah))
-	   	   shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
+	   	 {
+		     shm_subMatrixA0[tx] = d_matrixA[(y-j)*aw+(x)];
+                 }
+		__syncthreads();
+	        if ((((y+1-j)>-1) &&(y+1-j)<ah))
+	   	 {
+		     shm_subMatrixA1[tx] = d_matrixA[(y+1-j)*aw+(x)];
+                 }
 		   
 		__syncthreads();
 
 		for(int k = 0; k < bw; ++k) {
-			float b0 = shm_matrixB[j*bw+k];
-			float b1 = shm_matrixB[(j+1)*bw+k];
-			float a = 0;
+			float b = d_matrixB[j*bw+k];
+			float a0 = 0;
+			float a1 = 0;
 			// check the out-of-bound
-			if ((y-j)>-1 &&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
+			if ((((y-j)>-1) &&(y-j)<ah)&&(x-k)>-1&&(x-k)<aw) {
+				
+				a0 = shm_subMatrixA0[tx-k];
 
-				a = shm_subMatrixA[tx-k];
-				sum0 += a*b0;
-				sum1 += a*b1;
+				sum0 += a0*b;
+			}
+			if ((((y+1-j)>-1) &&(y+1-j)<ah)&&(x-k)>-1&&(x-k)<aw) {
+				
+				a1 = shm_subMatrixA1[tx-k];
+
+				sum1 += a1*b;
 			}
 		}//k loop
 		__syncthreads();
@@ -191,12 +209,13 @@ testKernel(	float* d_matrixA,
 			}
 		}
 	}//j loop
-#endif
+#endif //CHANGES
+
 
 #ifdef CHANGE3
 	// write data to global memory
-	d_matrixC[(2*y*aw)+x] = sum0;
-	d_matrixC[(((2*y)+1)*aw)+x] = sum1;
+	d_matrixC[(1*y*aw)+x] = sum0;
+	d_matrixC[(((1*y)+1)*aw)+x] = sum1;
 
 #else
 	// write data to global memory

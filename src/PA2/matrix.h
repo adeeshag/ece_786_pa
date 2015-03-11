@@ -2,7 +2,7 @@
 #define _MATRIX_H_
 
 #define BLOCK_SIZE_WIDTH 256
-#define BLOCK_SIZE_HEIGHT 2
+#define BLOCK_SIZE_HEIGHT 1
 #if 1
 #define MATRIX_A_WIDTH  (16 * 16)
 #define MATRIX_A_HEIGHT  (16 * 16)
