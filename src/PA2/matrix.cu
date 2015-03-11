@@ -135,13 +135,14 @@ runTest( int argc, char** argv)
 
 	printf( "initalize A\n");
     // initalize the memory
-#if 1
+#ifndef USE_TEST_INPUTS
+// Original inputs given
     for( unsigned int i = 0; i < matrixASize; ++i) matrixA[i] = (float) i;
     for( unsigned int i = 0; i < matrixBSize; ++i) matrixB[i] = (float) (i+1);
 #else
+//Test inputs given
     for( unsigned int i = 0; i < matrixASize; ++i) matrixA[i] = (float) 1;
     for( unsigned int i = 0; i < matrixBSize; ++i) matrixB[i] = (float) 1;
-	
 #endif
 	// print matrix 
 	printf( "matrix A\n");
@@ -172,6 +173,7 @@ runTest( int argc, char** argv)
 
     // allocate device memory for result
 #if 0
+// No Optimization
     // setup execution parameters
     dim3  threads( BLOCK_SIZE, BLOCK_SIZE);
     dim3  grid( MATRIX_A_WIDTH/BLOCK_SIZE, MATRIX_A_HEIGHT/BLOCK_SIZE);
@@ -179,7 +181,7 @@ runTest( int argc, char** argv)
     // setup execution parameters
     dim3  threads( BLOCK_SIZE_WIDTH, BLOCK_SIZE_HEIGHT);
     dim3  grid( (MATRIX_A_WIDTH)/BLOCK_SIZE_WIDTH, MATRIX_A_HEIGHT/2);
-#endif
+#endif // No Optimization
 
     // execute the kernel
     testKernel<<< grid, threads >>>( d_matrixA, d_matrixB, d_matrixC, MATRIX_A_HEIGHT, MATRIX_A_WIDTH, MATRIX_B_HEIGHT, MATRIX_B_WIDTH);

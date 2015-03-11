@@ -22,4 +22,12 @@
 #define FACTOR	1 
 #define DATA_TO_PULL_SIZE (FACTOR * WARP_SIZE)
 
+/* These should be uncommented for the code optimization to work */
+#define CHANGE1 1 // Matrix B in shared memory
+#define CHANGE2 1 //Matrix A in shared memory with Block merge
+#define CHANGE3 1 // Matrix A in shared memory with Thread Merge
+
+/* Uncomment just to set all 1's in the matrix for easy debugging. */
+//#define USE_TEST_INPUTS 1
+
 #endif

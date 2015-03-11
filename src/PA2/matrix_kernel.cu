@@ -42,9 +42,6 @@
 #define _matrix_KERNEL_H_
 
 
-#define CHANGE1 1 // Matrix B in shared memory
-#define CHANGE2 1 //Matrix A in shared memory with Block merge
-#define CHANGE3 1 // Matrix A in shared memory with Thread Merge
 
 #include <stdio.h>
 
@@ -118,7 +115,7 @@ testKernel(	float* d_matrixA,
 
 	if((tx<(KERNEL_SIZE)))
 	    shm_matrixB[ tx ] = d_matrixB[ tx ];
-	__syncthreads();
+//	__syncthreads();
 
 
 #endif
