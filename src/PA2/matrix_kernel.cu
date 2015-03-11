@@ -41,13 +41,8 @@
 #ifndef _matrix_KERNEL_H_
 #define _matrix_KERNEL_H_
 
-#define KERNEL_SIZE 64
-#define KERNEL_LENGTH 8
-#define WARP_SIZE 32
-#define FACTOR	1 
-#define DATA_TO_PULL_SIZE (FACTOR * WARP_SIZE)
 
-//#define CHANGE1 1
+#define CHANGE1 1
 #define CHANGE2 1
 
 #include <stdio.h>
@@ -72,7 +67,6 @@ testKernel(	float* d_matrixA,
   // shared memory
 #ifdef CHANGE1
 
-    unsigned int shm_matrixBSize = sizeof(float) * bh * bw ; //Matrix B size
     __shared__ float shm_matrixB[KERNEL_SIZE];
 #endif
 #ifdef CHANGE2
@@ -97,15 +91,15 @@ testKernel(	float* d_matrixA,
 
 	float sum = 0;
 #if 1
-	int y = ystep+ty;
-	int x = xstep+ tx;
+	int y = ystep + ty;
+	int x = xstep + tx;
 #endif
 
 
 #ifdef CHANGE1
 
-	if((tx<8)&&(ty<8))
-	    shm_matrixB[KERNEL_LENGTH * ty + tx] = d_matrixB[ ty * KERNEL_LENGTH + tx];
+	if((tx<KERNEL_SIZE))
+	    shm_matrixB[tx] = d_matrixB[tx];
 
 	__syncthreads();
 #endif
@@ -120,16 +114,14 @@ testKernel(	float* d_matrixA,
 		           if (((y-j)>-1) &&((y-j)<ah)&&((x-DATA_TO_PULL_SIZE)>-1)&&((x - DATA_TO_PULL_SIZE)<aw)) 
 		   	      shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x-DATA_TO_PULL_SIZE)];
 #endif
-#if 1	
 
 		        if ((((y-j)>-1) &&(y-j)<ah))
 		   	   shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
-#endif
 		   
 		__syncthreads();
 
 		for(int k = 0; k < bw; ++k) {
-			float b = d_matrixB[j*bw+k];
+			float b = shm_matrixB[j*bw+k];
 			float a = 0;
 			// check the out-of-bound
 			if ((y-j)>-1 &&(y-j)<ah&&((x)-k)>-1&&((x)-k)<aw) {

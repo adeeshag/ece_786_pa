@@ -15,4 +15,11 @@
 //#define MATRIX_B_WIDTH  (1 * BLOCK_SIZE)
 //#define MATRIX_B_HEIGHT  (1 * BLOCK_SIZE)
 
+//User Defined
+#define KERNEL_SIZE 64
+#define KERNEL_LENGTH 8
+#define WARP_SIZE 32
+#define FACTOR	1 
+#define DATA_TO_PULL_SIZE (FACTOR * WARP_SIZE)
+
 #endif
