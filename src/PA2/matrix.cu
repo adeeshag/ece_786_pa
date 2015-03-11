@@ -135,7 +135,7 @@ runTest( int argc, char** argv)
 
 	printf( "initalize A\n");
     // initalize the memory
-#if 1
+#if 0
     for( unsigned int i = 0; i < matrixASize; ++i) matrixA[i] = (float) i;
     for( unsigned int i = 0; i < matrixBSize; ++i) matrixB[i] = (float) (i+1);
 #else
@@ -178,7 +178,7 @@ runTest( int argc, char** argv)
 #else
     // setup execution parameters
     dim3  threads( BLOCK_SIZE_WIDTH, BLOCK_SIZE_HEIGHT);
-    dim3  grid( MATRIX_A_WIDTH/BLOCK_SIZE_WIDTH, MATRIX_A_HEIGHT/BLOCK_SIZE_HEIGHT);
+    dim3  grid( MATRIX_A_WIDTH/BLOCK_SIZE_WIDTH, MATRIX_A_HEIGHT/(BLOCK_SIZE_HEIGHT));
 #endif
 
     // execute the kernel

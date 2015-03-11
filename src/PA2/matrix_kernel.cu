@@ -44,6 +44,7 @@
 
 #define CHANGE1 1
 #define CHANGE2 1
+#define CHANGE3 1
 
 #include <stdio.h>
 
@@ -88,24 +89,55 @@ testKernel(	float* d_matrixA,
 	int ystep = BLOCK_SIZE_HEIGHT*by;
 
 #endif
+#ifdef CHANGE3
+	float sum0 = 0;
+	float sum1 = 0;
 
+#else
 	float sum = 0;
-#if 1
+#endif
+
 	int y = ystep + ty;
 	int x = xstep + tx;
-#endif
 
 
 #ifdef CHANGE1
 
-	if((tx<KERNEL_SIZE))
-	    shm_matrixB[tx] = d_matrixB[tx];
+	if((tx<(KERNEL_SIZE/2)))
+	    shm_matrixB[KERNEL_LENGTH*ty + tx] = d_matrixB[KERNEL_LENGTH *ty + tx];
 
 	__syncthreads();
 #endif
 
 
-#ifdef CHANGE2	
+/* -------------------------------- Computation -------------------------------------*/
+
+#ifdef CHANGE3
+//modified code
+	for (int j=0; j<bh; j++) {
+
+	        if ((((y-j)>-1) &&(y-j)<ah))
+	   	   shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
+		   
+		__syncthreads();
+
+		for(int k = 0; k < bw; ++k) {
+			float b0 = shm_matrixB[j*bw+k];
+			float b1 = shm_matrixB[(j+1)*bw+k];
+			float a = 0;
+			// check the out-of-bound
+			if ((y-j)>-1 &&(y-j)<ah&&(x-k)>-1&&(x-k)<aw) {
+
+				a = shm_subMatrixA[tx-k];
+				sum0 += a*b0;
+				sum1 += a*b1;
+			}
+		}//k loop
+		__syncthreads();
+	}//j loop
+
+
+#elif defined(CHANGE2)	
 //modified code
 	for (int j=0; j<bh; j++) {
 
@@ -115,8 +147,8 @@ testKernel(	float* d_matrixA,
 		   	      shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x-DATA_TO_PULL_SIZE)];
 #endif
 
-		        if ((((y-j)>-1) &&(y-j)<ah))
-		   	   shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
+		if ((((y-j)>-1) &&(y-j)<ah))
+		   shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
 		   
 		__syncthreads();
 
@@ -160,8 +192,16 @@ testKernel(	float* d_matrixA,
 		}
 	}//j loop
 #endif
+
+#ifdef CHANGE3
+	// write data to global memory
+	d_matrixC[(2*y*aw)+x] = sum0;
+	d_matrixC[(((2*y)+1)*aw)+x] = sum1;
+
+#else
 	// write data to global memory
 	d_matrixC[y*aw+x] = sum;
+#endif
 }// end of func
 
 #endif // #ifndef _matrix_KERNEL_H_
