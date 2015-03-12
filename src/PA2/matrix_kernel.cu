@@ -127,7 +127,8 @@ testKernel(	float* d_matrixA,
 
 	if((tx<(WARP_SIZE)))
 	    shm_subMatrixA[ tx  ] = 0;
-//	__syncthreads();
+
+	__syncthreads();
 
 
 #elif defined(CHANGE1)
@@ -146,10 +147,15 @@ testKernel(	float* d_matrixA,
 //modified code
 	for (int j=0; j<bh+1; j++) {
 
-	        if ((((y-j+1)>-1) &&(y-j+1)<ah))
+
+	        if ((((y-j+1)>-1)))
 	   	 {
-		     shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
+		     shm_subMatrixA[tx+32] = d_matrixA[(y-j+1)*aw+(x)];
                  }
+		 else
+		 {
+		     shm_subMatrixA[tx+32] = 0;
+		 }
 		   
 		__syncthreads();
 
@@ -158,13 +164,13 @@ testKernel(	float* d_matrixA,
 			float b1 = shm_matrixB[(j+1)*bw+k];
 			float a = 0;
 			// check the out-of-bound
-			if ((((y-j)>-1) &&(y-j)<ah)&&(x-k)>-1&&(x-k)<aw) {
+			//if ((((y-j)>-1) &&(y-j)<ah)&&(x-k)>-1&&(x-k)<aw) {
 				
-				a = shm_subMatrixA[tx-k];
+				a = shm_subMatrixA[tx-k+WARP_SIZE];
 
 				sum0 += a*b0;
 				sum1 += a*b1;
-			}
+		//	}
 		}//k loop
 		__syncthreads();
 	}//j loop
@@ -266,8 +272,8 @@ testKernel(	float* d_matrixA,
 
 #ifdef CHANGE4
 	// write data to global memory
-	d_matrixC[(2*y*aw)+x] = sum0;
-	d_matrixC[(((2*y)+1)*aw)+x] = sum1;
+	d_matrixC[(1*y*aw)+x] = sum0;
+	d_matrixC[(((1*y)+1)*aw)+x] = sum1;
 #elif defined(CHANGE3)
 	// write data to global memory
 	d_matrixC[(1*y*aw)+x] = sum0;
