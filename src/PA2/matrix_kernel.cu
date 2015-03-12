@@ -63,13 +63,17 @@ testKernel(	float* d_matrixA,
 			const unsigned int bh,
 			const unsigned int bw) {
   // shared memory - Matrix B
-#ifdef CHANGE1
-
+#ifdef CHANGE4
+    __shared__ float shm_matrixB[KERNEL_SIZE+(2*KERNEL_LENGTH)];
+#elif defined(CHANGE1)
     __shared__ float shm_matrixB[KERNEL_SIZE];
 #endif
 
   // shared memory - SubMatrix A
-#ifdef CHANGE3
+#ifdef CHANGE4
+    __shared__ float shm_subMatrixA[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH+WARP_SIZE];
+
+#elif defined(CHANGE3)
     __shared__ float shm_subMatrixA0[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
     __shared__ float shm_subMatrixA1[BLOCK_SIZE_HEIGHT*BLOCK_SIZE_WIDTH];
 
@@ -79,7 +83,6 @@ testKernel(	float* d_matrixA,
 #endif
 
   // the size is determined by the host application
-// extern  __shared__  float sdata[];
 	const unsigned int bx = blockIdx.x;
 	const unsigned int by = blockIdx.y;
 
@@ -111,7 +114,23 @@ testKernel(	float* d_matrixA,
 	int x = xstep + tx;
 
 
-#ifdef CHANGE1
+#ifdef CHANGE4
+
+	if((tx<(KERNEL_LENGTH)))
+	{ 
+	  shm_matrixB[ tx ] = 0;
+	  shm_matrixB[ KERNEL_SIZE + tx ] = 0;
+	}
+
+	if((tx<(KERNEL_SIZE)))
+	    shm_matrixB[ tx + KERNEL_LENGTH ] = d_matrixB[ tx ];
+
+	if((tx<(WARP_SIZE)))
+	    shm_subMatrixA[ tx  ] = 0;
+//	__syncthreads();
+
+
+#elif defined(CHANGE1)
 
 	if((tx<(KERNEL_SIZE)))
 	    shm_matrixB[ tx ] = d_matrixB[ tx ];
@@ -123,7 +142,35 @@ testKernel(	float* d_matrixA,
 
 /* -------------------------------- Computation -------------------------------------*/
 
-#ifdef CHANGE3
+#ifdef CHANGE4
+//modified code
+	for (int j=0; j<bh+1; j++) {
+
+	        if ((((y-j+1)>-1) &&(y-j+1)<ah))
+	   	 {
+		     shm_subMatrixA[tx] = d_matrixA[(y-j)*aw+(x)];
+                 }
+		   
+		__syncthreads();
+
+		for(int k = 0; k < bw; ++k) {
+			float b0 = shm_matrixB[j*bw+k];
+			float b1 = shm_matrixB[(j+1)*bw+k];
+			float a = 0;
+			// check the out-of-bound
+			if ((((y-j)>-1) &&(y-j)<ah)&&(x-k)>-1&&(x-k)<aw) {
+				
+				a = shm_subMatrixA[tx-k];
+
+				sum0 += a*b0;
+				sum1 += a*b1;
+			}
+		}//k loop
+		__syncthreads();
+	}//j loop
+
+
+#elif defined(CHANGE3)
 //modified code
 	for (int j=0; j<bh; j++) {
 
@@ -217,7 +264,11 @@ testKernel(	float* d_matrixA,
 #endif //CHANGES
 
 
-#ifdef CHANGE3
+#ifdef CHANGE4
+	// write data to global memory
+	d_matrixC[(2*y*aw)+x] = sum0;
+	d_matrixC[(((2*y)+1)*aw)+x] = sum1;
+#elif defined(CHANGE3)
 	// write data to global memory
 	d_matrixC[(1*y*aw)+x] = sum0;
 	d_matrixC[(((1*y)+1)*aw)+x] = sum1;
