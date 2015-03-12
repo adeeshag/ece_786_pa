@@ -116,16 +116,17 @@ testKernel(	float* d_matrixA,
 
 #ifdef CHANGE4
 
-	if((tx<(KERNEL_LENGTH)))
-	{ 
+	if(tx<(KERNEL_LENGTH))
+	{// Padding zeros to get rid of dependence on divergence 
 	  shm_matrixB[ tx ] = 0;
 	  shm_matrixB[ KERNEL_SIZE + tx ] = 0;
 	}
 
-	if((tx<(KERNEL_SIZE)))
+	// Padding zeros to get rid of dependence on divergence 
+	if(tx<(KERNEL_SIZE))
 	    shm_matrixB[ tx + KERNEL_LENGTH ] = d_matrixB[ tx ];
 
-	if((tx<(WARP_SIZE)))
+	if(tx<(WARP_SIZE))
 	    shm_subMatrixA[ tx  ] = 0;
 
 	__syncthreads();
@@ -148,14 +149,12 @@ testKernel(	float* d_matrixA,
 	for (int j=0; j<bh+1; j++) {
 
 
-	        if ((((y-j+1)>-1)))
+		shm_subMatrixA[tx+WARP_SIZE] = 0;
+
+	        if ((y-j+1)>-1)
 	   	 {
-		     shm_subMatrixA[tx+32] = d_matrixA[(y-j+1)*aw+(x)];
+		     shm_subMatrixA[tx+WARP_SIZE] = d_matrixA[(y-j+1)*aw+(x)];
                  }
-		 else
-		 {
-		     shm_subMatrixA[tx+32] = 0;
-		 }
 		   
 		__syncthreads();
 
@@ -163,14 +162,10 @@ testKernel(	float* d_matrixA,
 			float b0 = shm_matrixB[j*bw+k];
 			float b1 = shm_matrixB[(j+1)*bw+k];
 			float a = 0;
-			// check the out-of-bound
-			//if ((((y-j)>-1) &&(y-j)<ah)&&(x-k)>-1&&(x-k)<aw) {
-				
-				a = shm_subMatrixA[tx-k+WARP_SIZE];
 
-				sum0 += a*b0;
-				sum1 += a*b1;
-		//	}
+			a = shm_subMatrixA[tx-k+WARP_SIZE];
+			sum0 += a*b0;
+			sum1 += a*b1;
 		}//k loop
 		__syncthreads();
 	}//j loop
